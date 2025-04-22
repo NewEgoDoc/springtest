@@ -1,0 +1,26 @@
+name: Pull nginx image from Harbor and test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  harbor-nginx-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to Harbor registry
+        run: |
+          echo "${{ secrets.HARBOR_PASSWORD }}" | docker login www.devhub.today -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
+
+      - name: Pull Docker image from Harbor
+        run: |
+          docker pull www.devhub.today/new_project/nginx:juhan
+
+      - name: Run nginx container and test
+        run: |
+          docker run -d --name test-nginx -p 8080:80 www.devhub.today/new_project/nginx:juhan
+          sleep 5
+          curl -v --retry 5 --retry-delay 2 http://localhost:8080
